@@ -2,14 +2,15 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <math.h>
 
 using namespace std;
 
 template <class T>
-inline std::string convertToString (const T& t)
+inline std::string convertToString (const T& _t)
 {
 	std::stringstream ss;
-	ss << t;
+	ss << _t;
 	return ss.str();
 }
 
@@ -34,6 +35,11 @@ public:
 		returnVector.x = x - _other.x;
 		returnVector.y = y - _other.y;
 		return returnVector;
+	}
+
+	float Length()
+	{
+		return sqrt((float)(x*x + y*y));
 	}
 
 	string ToString()
@@ -98,7 +104,7 @@ int main(int argc, char** argv) {
 	  AStarTile startingTile;
 	  startingTile.pos = actor.pos;
 	  startingTile.G = 0;
-	  startingTile.H = Startin
+	  startingTile.H = (int)(startingTile.pos - endPoint).Length();
 	  openFields.push_back(startingTile);
 	  bool done = false;
 	  while(!done)
