@@ -61,6 +61,31 @@ public:
 	int G;
 	int H;
 	AStarTile *parentTile;
+
+	int GetG()
+	{
+		if(parentTile != NULL)
+		{
+			if(G != 0)
+				return G;
+			G = 10 + parentTile ->GetG();
+			return 10 + parentTile ->GetG();
+		}
+		else
+		{
+			G = 0;
+			return 0;
+		}
+	}
+
+	void PrintPath()
+	{
+		cout << pos.ToString() << endl;
+		if(parentTile != NULL)
+		{
+			parentTile->PrintPath();
+		}
+	}
 };
 
 
@@ -96,7 +121,7 @@ int main(int argc, char** argv) {
 	  }
 	  else
 	  {
-		  cout << "End point is at " + endPoint.ToString();
+		  cout << "End point is at " + endPoint.ToString() << endl;
 	  }
 
 	  vector<AStarTile> openFields;
@@ -105,12 +130,98 @@ int main(int argc, char** argv) {
 	  startingTile.pos = actor.pos;
 	  startingTile.G = 0;
 	  startingTile.H = (int)(startingTile.pos - endPoint).Length();
+	  startingTile.parentTile = NULL;
 	  openFields.push_back(startingTile);
 	  bool done = false;
 	  while(!done)
 	  {
-			AStarTile 
+		  int lowestF = openFields[0].GetG() + openFields[0].H;
+		  AStarTile lowestTile = openFields[0];
+		  int lowestIndex = 0;
+		  for(int i = 1 ; i < openFields.size(); i++)
+		  {
+			  if(openFields[i].G + openFields[i].H > lowestF)
+			  {
+					lowestF = openFields[i].GetG() + openFields[i].H;
+					lowestTile = openFields[i];
+					lowestIndex = i;
+			  }
+		  }
+		  openFields.erase(openFields.begin()+lowestIndex);
+		  closedFields.push_back(lowestTile);
+		  cout << "Adding tile to closed list: " + lowestTile.pos.ToString() << endl;
+		  for(int x = lowestTile.pos.x - 1; x <= lowestTile.pos.x + 1; x++)
+		  {
+			  if(x < 0 || x >= 10)
+				  continue;
+
+			  for(int y = lowestTile.pos.y - 1; y <= lowestTile.pos.y + 1; y++)
+			  {
+				  if(y < 0 || y >= 10)
+						continue;
+
+				  if(y == lowestTile.pos.y && x == lowestTile.pos.x)
+						continue;
+
+				  if(y == endPoint.y && x == endPoint.x)
+				  {
+					  AStarTile endTile;
+					  endTile.pos.x = x;
+					  endTile.pos.y = y;
+					  endTile.parentTile = &lowestTile;
+					  openFields.push_back(endTile);
+					  done = true;
+					  break;
+				  }
+
+				  if(map[x][y] == false)
+				  {
+					  bool inClosed = false;
+					  for(int i = 0 ; i < closedFields.size(); i++)
+					  {
+							if(closedFields[i].pos.x == x && closedFields[i].pos.y == y)
+							{
+								inClosed = true;
+								break;
+							}
+					  }
+					  if(inClosed)
+						  continue;
+
+					  AStarTile newTile;
+					  newTile.parentTile = &lowestTile;
+					  newTile.pos.x = x;
+					  newTile.pos.y = y;
+					  newTile.G = 0;
+					  newTile.H = (int)(newTile.pos - endPoint).Length();
+					  cout << "Inspecting Tile: " + newTile.pos.ToString() << endl;
+
+					  bool inOpen = false;
+					  for(int i = 0 ; i < openFields.size(); i++)
+					  {
+							if(openFields[i].pos.x == x && openFields[i].pos.y == y)
+							{
+								  inOpen = true;
+								  if(openFields[i].GetG() > newTile.GetG())
+								  {
+									  openFields[i].parentTile = newTile.parentTile;
+								  }
+							}
+					  }
+					  if(!inOpen)
+					  {
+						  openFields.push_back(newTile);
+						  cout << "Adding Tile to open list: " + newTile.pos.ToString() << endl;
+					  }
+				  }
+			  }
+			  if(done)
+				  break;
+		  }
+
 	  }
+	  cout << "Path found" << endl;
+	  openFields[openFields.size() -1].PrintPath();
 	  fflush(stdin);
 	  getchar();
 	  return 0;
