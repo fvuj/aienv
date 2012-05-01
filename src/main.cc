@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <math.h>
+#include <Windows.h>
 
 using namespace std;
 
@@ -136,31 +137,36 @@ int main(int argc, char** argv) {
 	  while(!done)
 	  {
 		  int lowestF = openFields[0].GetG() + openFields[0].H;
-		  AStarTile lowestTile = openFields[0];
 		  int lowestIndex = 0;
 		  for(int i = 1 ; i < openFields.size(); i++)
 		  {
-			  if(openFields[i].G + openFields[i].H > lowestF)
+			  openFields[i].GetG();
+			  if(openFields[i].GetG() + openFields[i].H < lowestF)
 			  {
-					lowestF = openFields[i].GetG() + openFields[i].H;
-					lowestTile = openFields[i];
-					lowestIndex = i;
+				  lowestF = openFields[i].GetG() + openFields[i].H;
+				  lowestIndex = i;
 			  }
 		  }
+		  closedFields.push_back(openFields[lowestIndex]);
 		  openFields.erase(openFields.begin()+lowestIndex);
-		  closedFields.push_back(lowestTile);
-		  cout << "Adding tile to closed list: " + lowestTile.pos.ToString() << endl;
-		  for(int x = lowestTile.pos.x - 1; x <= lowestTile.pos.x + 1; x++)
+		  AStarTile* lowestTile = new AStarTile();
+		  lowestTile->pos = closedFields[closedFields.size()-1].pos;
+		  lowestTile->parentTile = closedFields[closedFields.size()-1].parentTile;
+		  lowestTile->H = closedFields[closedFields.size()-1].H;
+		  lowestTile->G = closedFields[closedFields.size()-1].G;
+		  
+		  cout << "Adding tile to closed list: " + lowestTile->pos.ToString() << endl;
+		  for(int x = lowestTile->pos.x - 1; x <= lowestTile->pos.x + 1; x++)
 		  {
 			  if(x < 0 || x >= 10)
 				  continue;
 
-			  for(int y = lowestTile.pos.y - 1; y <= lowestTile.pos.y + 1; y++)
+			  for(int y = lowestTile->pos.y - 1; y <= lowestTile->pos.y + 1; y++)
 			  {
 				  if(y < 0 || y >= 10)
 						continue;
 
-				  if(y == lowestTile.pos.y && x == lowestTile.pos.x)
+				  if(y == lowestTile->pos.y && x == lowestTile->pos.x)
 						continue;
 
 				  if(y == endPoint.y && x == endPoint.x)
@@ -168,7 +174,7 @@ int main(int argc, char** argv) {
 					  AStarTile endTile;
 					  endTile.pos.x = x;
 					  endTile.pos.y = y;
-					  endTile.parentTile = &lowestTile;
+					  endTile.parentTile = lowestTile;
 					  openFields.push_back(endTile);
 					  done = true;
 					  break;
@@ -189,13 +195,12 @@ int main(int argc, char** argv) {
 						  continue;
 
 					  AStarTile newTile;
-					  newTile.parentTile = &lowestTile;
+					  newTile.parentTile = lowestTile;
 					  newTile.pos.x = x;
 					  newTile.pos.y = y;
 					  newTile.G = 0;
 					  newTile.H = (int)(newTile.pos - endPoint).Length();
 					  cout << "Inspecting Tile: " + newTile.pos.ToString() << endl;
-
 					  bool inOpen = false;
 					  for(int i = 0 ; i < openFields.size(); i++)
 					  {
